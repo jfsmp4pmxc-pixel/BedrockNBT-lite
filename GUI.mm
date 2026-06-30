@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <string>
 #import "GUI.h"
 
 // Gọi các hàm xử lý từ Main.mm
