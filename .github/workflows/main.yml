@@ -1,4 +1,4 @@
-name: Build Lib
+name: Build BedrockNBT-LITE
 
 on:
   push:
@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-    # Lên đời hẳn macOS 14 (M2 Runner) cho máu, bỏ macos-13 khan hiếm máy ảo
     runs-on: macos-14
 
     steps:
@@ -17,17 +16,16 @@ jobs:
       with:
         submodules: recursive
 
-    # 1. Kéo framework Theos về thủ công bằng git, không dùng script cài đặt tự động
     - name: Setup Theos Framework
       run: |
         git clone --recursive https://github.com/theos/theos.git $HOME/theos
 
-    # 2. Tự kéo SDK iOS về thư mục sdks của Theos
+    # Sửa đoạn này: Xóa thư mục cũ đi trước rồi mới clone SDK về
     - name: Setup iOS SDK
       run: |
+        rm -rf $HOME/theos/sdks
         git clone --depth=1 https://github.com/theos/sdks.git $HOME/theos/sdks
 
-    # 3. Tiến hành compile bằng Xcode Toolchain có sẵn trên macOS 14
     - name: Compile Tweak dylib
       run: |
         export THEOS=$HOME/theos
