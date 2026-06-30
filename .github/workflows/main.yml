@@ -20,8 +20,7 @@ jobs:
       run: |
         echo "=== Đang biên dịch BedrockNBT-LITE ==="
         
-        # Lệnh biên dịch trực tiếp ra file .dylib cho kiến trúc arm64 (iPhone/iPad)
-        # Nếu bạn có thêm file imgui, hãy cộng thêm vào cuối lệnh (vd: imgui/*.cpp)
+        # Chỉ compile đúng 2 file của bạn, lấy thẳng SDK iOS gốc của Mac
         clang++ -dynamiclib -std=c++17 \
           -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
