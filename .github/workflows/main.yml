@@ -1,4 +1,4 @@
-name: Build BedrockNBT-LITE
+name: Build and Release dylib
 
 on:
   push:
@@ -16,24 +16,33 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup Theos Framework
+    - name: Compile dylib directly via Clang
       run: |
-        git clone --recursive https://github.com/theos/theos.git $HOME/theos
-
-    # Sửa đoạn này: Xóa thư mục cũ đi trước rồi mới clone SDK về
-    - name: Setup iOS SDK
-      run: |
-        rm -rf $HOME/theos/sdks
-        git clone --depth=1 https://github.com/theos/sdks.git $HOME/theos/sdks
-
-    - name: Compile Tweak dylib
-      run: |
-        export THEOS=$HOME/theos
-        export PATH=$THEOS/bin:$PATH
-        make package FINALPACKAGE=1
+        echo "=== Đang biên dịch BedrockNBT-LITE ==="
         
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+        # Lệnh biên dịch trực tiếp ra file .dylib cho kiến trúc arm64 (iPhone/iPad)
+        # Nếu bạn có thêm file imgui, hãy cộng thêm vào cuối lệnh (vd: imgui/*.cpp)
+        clang++ -dynamiclib -std=c++17 \
+          -arch arm64 \
+          -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+          -miphoneos-version-min=15.0 \
+          -fobjc-arc \
+          -framework Foundation -framework UIKit \
+          Main.mm GUI.mm \
+          -o BedrockNBT_LITE.dylib
+          
+        echo "=== Biên dịch thành công! ==="
+        ls -la BedrockNBT_LITE.dylib
+
+    # Tự động tạo Release và upload file .dylib lên GitHub Release khi push code
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: github.ref == 'refs/heads/main'
       with:
-        name: BedrockNBT-LITE-Package
-        path: packages/*.deb
+        tag_name: v0.1.0-beta
+        name: BedrockNBT-LITE Build v0.1.0
+        draft: false
+        prerelease: false
+        files: BedrockNBT_LITE.dylib
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
