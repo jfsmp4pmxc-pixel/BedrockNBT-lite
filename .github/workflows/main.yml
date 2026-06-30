@@ -19,22 +19,31 @@ jobs:
     - name: Install Dependencies (Linux Cross-Compile)
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential perl git curl libssl-dev make clang
+        sudo apt-get install -y build-essential perl git curl libssl-dev make clang unzip
 
-    - name: Prepare Theos and SDKs Directory
+    # 1. Clone trực tiếp mã nguồn Theos thủ công
+    - name: Clone Theos Framework
       run: |
-        mkdir -p $HOME/theos/sdks
+        git clone --recursive https://github.com/theos/theos.git $HOME/theos
+
+    # 2. Tải Toolchain biên dịch iOS dành riêng cho Linux
+    - name: Install Linux iOS Toolchain
+      run: |
+        mkdir -p $HOME/theos/toolchain/linux/iphone
+        curl -LO https://github.com/theos/toolchain/releases/download/linux-arm64/toolchain-linux-arm64.tar.xz
+        tar -xf toolchain-linux-arm64.tar.xz -C $HOME/theos/toolchain/linux/iphone --strip-components=1
+        rm toolchain-linux-arm64.tar.xz
+
+    # 3. Kéo SDK iOS về như cũ
+    - name: Prepare iOS SDKs
+      run: |
         git clone --depth=1 https://github.com/theos/sdks.git $HOME/theos/sdks
 
-    - name: Set up Theos Environment
-      run: |
-        export THEOS_AUTO_DOWNLOAD_SDKS=0
-        bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-        
+    # 4. Thiết lập biến môi trường và tiến hành Build
     - name: Compile Tweak dylib
       run: |
         export THEOS=$HOME/theos
+        export PATH=$THEOS/bin:$PATH
         make package FINALPACKAGE=1
         
     - name: Upload Artifact
