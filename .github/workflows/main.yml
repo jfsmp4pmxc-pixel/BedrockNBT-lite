@@ -1,4 +1,4 @@
-name: Build BedrockNBT-LITE
+name:  BedrockNBT-LITE
 
 on:
   push:
@@ -8,12 +8,18 @@ on:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
       with:
         submodules: recursive
+
+    - name: Install Dependencies (Linux Cross-Compile)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential perl git curl libssl-dev make clang target-cli-at
 
     - name: Set up Theos Environment
       run: |
@@ -24,8 +30,9 @@ jobs:
       run: |
         git clone https://github.com/theos/sdks.git $HOME/theos/sdks
         
-    - name: Compile dylib
+    - name: Compile Tweak dylib
       run: |
+        export THEOS=$HOME/theos
         make package FINALPACKAGE=1
         
     - name: Upload Artifact
