@@ -1,4 +1,4 @@
-name: Build and Release dylib
+name: Build and Upload dylib
 
 on:
   push:
@@ -20,7 +20,6 @@ jobs:
       run: |
         echo "=== Đang biên dịch BedrockNBT-LITE ==="
         
-        # Chỉ compile đúng 2 file của bạn, lấy thẳng SDK iOS gốc của Mac
         clang++ -dynamiclib -std=c++17 \
           -arch arm64 \
           -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
@@ -33,15 +32,9 @@ jobs:
         echo "=== Biên dịch thành công! ==="
         ls -la BedrockNBT_LITE.dylib
 
-    # Tự động tạo Release và upload file .dylib lên GitHub Release khi push code
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      if: github.ref == 'refs/heads/main'
+    # Nhả file dylib ra mục Artifact của trang cá nhân
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        tag_name: v0.1.0-beta
-        name: BedrockNBT-LITE Build v0.1.0
-        draft: false
-        prerelease: false
-        files: BedrockNBT_LITE.dylib
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: BedrockNBT-LITE-Pure-Dylib
+        path: BedrockNBT_LITE.dylib
