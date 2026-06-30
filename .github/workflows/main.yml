@@ -1,4 +1,4 @@
-name: Build BedrockNBT-LITE
+name: Build Lib
 
 on:
   push:
@@ -8,7 +8,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Lên đời hẳn macOS 14 (M2 Runner) cho máu, bỏ macos-13 khan hiếm máy ảo
+    runs-on: macos-14
 
     steps:
     - name: Checkout Code
@@ -16,30 +17,17 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install Dependencies (Linux Cross-Compile)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential perl git curl libssl-dev make clang unzip
-
-    # 1. Clone trực tiếp mã nguồn Theos thủ công
-    - name: Clone Theos Framework
+    # 1. Kéo framework Theos về thủ công bằng git, không dùng script cài đặt tự động
+    - name: Setup Theos Framework
       run: |
         git clone --recursive https://github.com/theos/theos.git $HOME/theos
 
-    # 2. Tải Toolchain biên dịch iOS dành riêng cho Linux
-    - name: Install Linux iOS Toolchain
-      run: |
-        mkdir -p $HOME/theos/toolchain/linux/iphone
-        curl -LO https://github.com/theos/toolchain/releases/download/linux-arm64/toolchain-linux-arm64.tar.xz
-        tar -xf toolchain-linux-arm64.tar.xz -C $HOME/theos/toolchain/linux/iphone --strip-components=1
-        rm toolchain-linux-arm64.tar.xz
-
-    # 3. Kéo SDK iOS về như cũ
-    - name: Prepare iOS SDKs
+    # 2. Tự kéo SDK iOS về thư mục sdks của Theos
+    - name: Setup iOS SDK
       run: |
         git clone --depth=1 https://github.com/theos/sdks.git $HOME/theos/sdks
 
-    # 4. Thiết lập biến môi trường và tiến hành Build
+    # 3. Tiến hành compile bằng Xcode Toolchain có sẵn trên macOS 14
     - name: Compile Tweak dylib
       run: |
         export THEOS=$HOME/theos
